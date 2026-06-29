@@ -2,141 +2,256 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Coaching OS — Command Center</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#eaf0ff" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<link rel="manifest" href="/manifest.json" />
+<link rel="apple-touch-icon" href="/icon-192.png" />
+<title>Coaching OS</title>
 <style>
-  :root{--bg:#0f1115;--card:#191c23;--mut:#8b93a7;--acc:#4f8cff;--ok:#28c76f;--warn:#ff9f43;--bad:#ea5455;--line:#262b36}
-  *{box-sizing:border-box} body{margin:0;font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6e9f0}
-  header{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
-  h1{font-size:17px;margin:0} .pill{padding:3px 10px;border-radius:99px;background:#191c23;border:1px solid var(--line);font-size:12px;color:var(--mut)}
-  .wrap{padding:22px;display:grid;gap:18px;grid-template-columns:1fr 1fr}
-  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
-  .card{background:#191c23;border:1px solid var(--line);border-radius:12px;padding:16px}
-  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
-  table{width:100%;border-collapse:collapse;font-size:13px} th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
-  th{color:var(--mut);font-weight:600} .tag{font-size:11px;padding:2px 8px;border-radius:99px}
-  .paid{background:rgba(40,199,111,.15);color:#28c76f}.unpaid{background:rgba(234,84,85,.15);color:#ea5455}
-  input,textarea,select{width:100%;background:#0f1115;border:1px solid var(--line);color:#e6e9f0;border-radius:8px;padding:9px;font:inherit;margin:4px 0}
-  input.mark{width:80px;margin:0;text-align:center}
-  label{font-size:12px;color:var(--mut)} button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer;margin-top:8px}
-  button.alt{background:#2a3140} button.green{background:#1f9d57}
-  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px} .s b{display:block;font-size:24px} .s span{color:var(--mut);font-size:12px}
-  .stats{display:flex;gap:22px;flex-wrap:wrap} .full{grid-column:1/-1} small.note{color:var(--mut)} .btns{display:flex;gap:8px;flex-wrap:wrap}
-  a{color:var(--acc)}
+  :root{
+    --ink:#1f2937; --mut:#6b7280; --faint:#9aa3b2;
+    --glass:rgba(255,255,255,.55); --glass2:rgba(255,255,255,.38); --hair:rgba(255,255,255,.75);
+    --line:rgba(120,130,160,.18); --accent:#6366f1; --accent2:#8b5cf6; --ok:#10b981; --bad:#ef4444; --warn:#f59e0b;
+    --shadow:0 8px 32px rgba(60,70,120,.14); --radius:22px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%}
+  body{
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,system-ui,sans-serif;
+    color:var(--ink); padding-bottom:96px;
+    background:linear-gradient(160deg,#eef2ff 0%,#fdeef6 48%,#e4f4ff 100%); background-attachment:fixed;
+    position:relative; overflow-x:hidden;
+  }
+  /* aurora blobs */
+  body::before,body::after{content:"";position:fixed;z-index:-1;filter:blur(70px);opacity:.55;border-radius:50%}
+  body::before{width:46vw;height:46vw;background:radial-gradient(circle,#a5b4fc,#c4b5fd 60%,transparent 70%);top:-12vw;left:-10vw}
+  body::after{width:50vw;height:50vw;background:radial-gradient(circle,#fbcfe8,#bae6fd 60%,transparent 70%);bottom:-16vw;right:-12vw}
+
+  .glass{background:var(--glass);backdrop-filter:blur(22px) saturate(180%);-webkit-backdrop-filter:blur(22px) saturate(180%);
+    border:1px solid var(--hair);box-shadow:var(--shadow)}
+
+  header{position:sticky;top:0;z-index:30;padding:14px 18px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    border-bottom:1px solid var(--line);border-radius:0 0 24px 24px}
+  .brand{display:flex;align-items:center;gap:10px;margin-right:auto}
+  .logo{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent2));
+    display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;box-shadow:0 4px 14px rgba(99,102,241,.4)}
+  h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.01em}
+  .sub{font-size:11px;color:var(--mut)}
+  .pill{padding:5px 11px;border-radius:99px;font-size:12px;font-weight:600;color:var(--ink);
+    background:var(--glass2);border:1px solid var(--hair);display:inline-flex;align-items:center;gap:5px}
+  .dot{width:7px;height:7px;border-radius:50%;background:var(--warn)} .pill.on .dot{background:var(--ok)} .pill.off .dot{background:var(--bad)}
+  #install{display:none;border:0;cursor:pointer;background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
+    padding:7px 14px;border-radius:99px;font-weight:700;font-size:12px;box-shadow:0 4px 14px rgba(99,102,241,.4)}
+
+  main{max-width:1100px;margin:0 auto;padding:18px}
+  .panel{display:none;animation:fade .35s ease} .panel.show{display:block}
+  @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .grid{display:grid;gap:16px;grid-template-columns:1fr}
+  @media(min-width:760px){.grid.two{grid-template-columns:1fr 1fr}}
+
+  .card{border-radius:var(--radius);padding:18px}
+  .card h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--mut);margin:0 0 14px;font-weight:700}
+
+  .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(min-width:620px){.stats{grid-template-columns:repeat(3,1fr)}}
+  @media(min-width:900px){.stats{grid-template-columns:repeat(6,1fr)}}
+  .tile{border-radius:18px;padding:14px 16px}
+  .tile b{display:block;font-size:26px;font-weight:800;letter-spacing:-.02em;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .tile span{color:var(--mut);font-size:12px;font-weight:600}
+
+  label{font-size:12px;color:var(--mut);font-weight:600;display:block;margin-top:10px}
+  input,textarea,select{width:100%;font:inherit;color:var(--ink);margin-top:5px;padding:11px 13px;border-radius:13px;
+    background:rgba(255,255,255,.65);border:1px solid var(--hair);outline:none;transition:.15s}
+  input:focus,textarea:focus,select:focus{border-color:var(--accent);box-shadow:0 0 0 4px rgba(99,102,241,.14);background:#fff}
+  input.mark{width:78px;margin:0;text-align:center;padding:8px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:480px){.row{grid-template-columns:1fr}}
+  button{font:inherit;font-weight:700;cursor:pointer;border:0;border-radius:13px;padding:11px 16px;margin-top:12px;color:#fff;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 18px rgba(99,102,241,.32);transition:.15s}
+  button:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(99,102,241,.4)}
+  button:active{transform:translateY(0)}
+  button.ghost{background:rgba(255,255,255,.6);color:var(--ink);border:1px solid var(--hair);box-shadow:none}
+  button.ok{background:linear-gradient(135deg,#10b981,#059669);box-shadow:0 6px 18px rgba(16,185,129,.3)}
+  .btns{display:flex;gap:10px;flex-wrap:wrap}
+  .note{color:var(--mut);font-size:12.5px} a{color:var(--accent);font-weight:600;text-decoration:none}
+
+  .tbl-wrap{overflow-x:auto;border-radius:14px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px;min-width:420px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+  th{color:var(--faint);font-weight:700;font-size:11px;text-transform:uppercase;letter-spacing:.05em}
+  tr:last-child td{border-bottom:0}
+  .tag{font-size:11px;padding:3px 10px;border-radius:99px;font-weight:700}
+  .paid{background:rgba(16,185,129,.16);color:#059669}.unpaid{background:rgba(239,68,68,.14);color:#dc2626}
+  code{background:rgba(99,102,241,.1);color:var(--accent);padding:1px 6px;border-radius:6px;font-size:12px}
+  .filelabel{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.6);border:1px solid var(--hair);
+    border-radius:13px;padding:11px 16px;cursor:pointer;font-weight:700;font-size:13px;margin-top:6px}
+
+  /* navigation */
+  nav{position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:40;display:flex;gap:4px;padding:7px;
+    border-radius:24px;border:1px solid var(--hair)}
+  nav button{margin:0;background:transparent;box-shadow:none;color:var(--mut);border-radius:18px;padding:9px 14px;
+    display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:700;min-width:64px}
+  nav button .ic{font-size:19px;line-height:1}
+  nav button.active{color:#fff;background:linear-gradient(135deg,var(--accent),var(--accent2));box-shadow:0 6px 16px rgba(99,102,241,.4)}
+  nav button:hover{transform:none}
+  @media(min-width:760px){
+    nav{position:sticky;top:74px;bottom:auto;transform:none;margin:0 auto 4px;width:max-content}
+    nav button{flex-direction:row;gap:7px;font-size:13px}
+  }
 </style>
 </head>
 <body>
-<header>
-  <h1 id="title">Coaching OS</h1>
-  <span class="pill" id="wa">WA: …</span>
-  <span class="pill" id="ai">AI: …</span>
-  <span class="pill" id="q">Queue: …</span>
-  <span class="pill" id="clock"></span>
+<header class="glass">
+  <div class="brand">
+    <div class="logo" id="logo">C</div>
+    <div><h1 id="title">Coaching OS</h1><div class="sub" id="clock"></div></div>
+  </div>
+  <span class="pill" id="wa"><span class="dot"></span><span id="wa-t">WA</span></span>
+  <span class="pill" id="ai"><span class="dot"></span><span id="ai-t">AI</span></span>
+  <span class="pill" id="q">Queue 0</span>
+  <button id="install">⬇ Install</button>
 </header>
 
-<div class="wrap">
-  <div class="card full">
-    <h2>Overview</h2>
-    <div class="stats">
-      <div class="s"><b id="st-students">0</b><span>Students</span></div>
-      <div class="s"><b id="st-batches">0</b><span>Batches</span></div>
-      <div class="s"><b id="st-paid">0</b><span>Paid (month)</span></div>
-      <div class="s"><b id="st-unpaid">0</b><span>Unpaid</span></div>
-      <div class="s"><b id="st-exams">0</b><span>Exams</span></div>
-      <div class="s"><b id="st-results">0</b><span>Results</span></div>
+<nav class="glass" id="nav">
+  <button data-tab="home" class="active"><span class="ic">🏠</span>Home</button>
+  <button data-tab="enroll"><span class="ic">➕</span>Enroll</button>
+  <button data-tab="papers"><span class="ic">📄</span>Papers</button>
+  <button data-tab="results"><span class="ic">📊</span>Results</button>
+</nav>
+
+<main>
+  <!-- HOME -->
+  <section class="panel show" id="panel-home">
+    <div class="grid">
+      <div class="card glass">
+        <h2>Overview</h2>
+        <div class="stats">
+          <div class="tile glass"><b id="st-students">0</b><span>Students</span></div>
+          <div class="tile glass"><b id="st-batches">0</b><span>Batches</span></div>
+          <div class="tile glass"><b id="st-paid">0</b><span>Paid</span></div>
+          <div class="tile glass"><b id="st-unpaid">0</b><span>Unpaid</span></div>
+          <div class="tile glass"><b id="st-exams">0</b><span>Exams</span></div>
+          <div class="tile glass"><b id="st-results">0</b><span>Results</span></div>
+        </div>
+      </div>
+      <div class="card glass">
+        <h2>Students &amp; fees</h2>
+        <div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Batch</th><th>Stage</th><th>Fee</th><th>Phone</th></tr></thead><tbody id="tb-students"></tbody></table></div>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>1 · Enroll student</h2>
-    <form id="f-enroll">
-      <div class="row"><div><label>Student name</label><input name="name" required></div><div><label>Batch</label><input name="batch" placeholder="e.g. Class 10 Maths"></div></div>
-      <div class="row"><div><label>Student phone (91…)</label><input name="phone" required></div><div><label>Parent phone (91…)</label><input name="parentPhone"></div></div>
-      <div class="row"><div><label>Parent name</label><input name="parentName"></div><div><label>Monthly fee ₹</label><input name="feeAmount" type="number"></div></div>
-      <button>Enroll + send welcome</button> <small class="note">Welcome + brochure auto-sent (paced).</small>
-    </form>
-  </div>
-
-  <div class="card">
-    <h2>Brochure</h2>
-    <p><small class="note" id="broch-status">No brochure uploaded.</small></p>
-    <form id="f-brochure" enctype="multipart/form-data">
-      <label>Upload / replace brochure (PDF)</label><input name="brochure" type="file" accept="application/pdf" required>
-      <button>Save as current brochure</button>
-    </form>
-    <p style="margin-top:10px"><small class="note">Auto-sent to every new student. Or post it to a group now:</small></p>
-    <div class="row"><div><select id="broch-batch"></select></div><div><button id="btn-broch-send" class="alt" style="margin-top:4px">📘 Post to group</button></div></div>
-  </div>
-
-  <div class="card">
-    <h2>Batch → WhatsApp group</h2>
-    <p><small class="note">Add the linked number to each batch's WhatsApp group, then map them here. Papers &amp; group-results post there.</small></p>
-    <div class="row">
-      <div><label>Batch</label><select id="map-batch"></select></div>
-      <div><label>WhatsApp group</label><select id="map-group"></select></div>
+  <!-- ENROLL -->
+  <section class="panel" id="panel-enroll">
+    <div class="card glass">
+      <h2>Enroll a student</h2>
+      <form id="f-enroll">
+        <div class="row"><div><label>Student name</label><input name="name" required></div><div><label>Batch</label><input name="batch" placeholder="e.g. Class 10 Maths"></div></div>
+        <div class="row"><div><label>Student phone (91…)</label><input name="phone" required></div><div><label>Parent phone (91…)</label><input name="parentPhone"></div></div>
+        <div class="row"><div><label>Parent name</label><input name="parentName"></div><div><label>Monthly fee ₹</label><input name="feeAmount" type="number"></div></div>
+        <button>Enroll &amp; send welcome</button>
+        <p class="note" style="margin-top:10px">Welcome message + current brochure are sent automatically (paced).</p>
+      </form>
     </div>
-    <button id="btn-map" class="alt">Save mapping</button> <button id="btn-refresh-groups" class="alt">↻ Reload groups</button>
-    <table style="margin-top:10px"><thead><tr><th>Batch</th><th>Mapped group</th></tr></thead><tbody id="tb-batches"></tbody></table>
-  </div>
+  </section>
 
-  <div class="card">
-    <h2>2 · Create exam (→ batch group)</h2>
-    <form id="f-exam" enctype="multipart/form-data">
-      <label>Exam name</label><input name="name" required>
-      <div class="row"><div><label>Batch</label><select name="batch" id="exam-batch"></select></div><div><label>Total marks</label><input name="total" type="number" value="100"></div></div>
-      <label>Schedule (empty = send now)</label><input name="scheduledAt" type="datetime-local">
-      <label>Question paper (PDF)</label><input name="paper" type="file" accept="application/pdf">
-      <button>Upload + send paper</button> <small class="note">Empty schedule = posts to the batch group now. Set a time to schedule it.</small>
-    </form>
-  </div>
+  <!-- PAPERS -->
+  <section class="panel" id="panel-papers">
+    <div class="grid two">
+      <div class="card glass">
+        <h2>Brochure</h2>
+        <p class="note" id="broch-status">No brochure uploaded.</p>
+        <form id="f-brochure" enctype="multipart/form-data">
+          <label>Upload / replace brochure (PDF)</label>
+          <input name="brochure" type="file" accept="application/pdf" required>
+          <button>Save as current brochure</button>
+        </form>
+        <p class="note" style="margin-top:12px">Auto-sent to new students. Or post it to a group now:</p>
+        <div class="row"><div><select id="broch-batch"></select></div><div><button id="btn-broch-send" class="ghost">📘 Post to group</button></div></div>
+      </div>
 
-  <div class="card">
-    <h2>3 · Results &amp; report cards</h2>
-    <label>Select exam</label><select id="res-exam"></select>
-    <div class="btns" style="margin:6px 0">
-      <label class="alt" style="background:#2a3140;border-radius:8px;padding:9px 14px;cursor:pointer">📷 Upload marksheet
-        <input id="res-sheet" type="file" accept="image/*" multiple style="display:none"></label>
+      <div class="card glass">
+        <h2>Batch → WhatsApp group</h2>
+        <p class="note">Add the linked number to each batch's group, then map them. Papers &amp; group-results post there.</p>
+        <div class="row"><div><label>Batch</label><select id="map-batch"></select></div><div><label>WhatsApp group</label><select id="map-group"></select></div></div>
+        <div class="btns"><button id="btn-map" class="ghost">Save mapping</button><button id="btn-refresh-groups" class="ghost">↻ Reload groups</button></div>
+        <div class="tbl-wrap" style="margin-top:12px"><table><thead><tr><th>Batch</th><th>Mapped group</th></tr></thead><tbody id="tb-batches"></tbody></table></div>
+      </div>
+
+      <div class="card glass">
+        <h2>Send / schedule a paper</h2>
+        <form id="f-exam" enctype="multipart/form-data">
+          <label>Exam name</label><input name="name" required>
+          <div class="row"><div><label>Batch</label><select name="batch" id="exam-batch"></select></div><div><label>Total marks</label><input name="total" type="number" value="100"></div></div>
+          <label>Schedule (empty = send now)</label><input name="scheduledAt" type="datetime-local">
+          <label>Question paper (PDF)</label><input name="paper" type="file" accept="application/pdf">
+          <button>Upload &amp; send paper</button>
+          <p class="note" style="margin-top:10px">Empty schedule posts to the batch group now. Set a time to schedule it.</p>
+        </form>
+      </div>
     </div>
-    <table><thead><tr><th>Student</th><th>Marks</th><th>Remark (optional)</th></tr></thead><tbody id="tb-marks"></tbody></table>
-    <div class="btns">
-      <button id="btn-save-marks">💾 Save marks</button>
-      <button id="btn-gen" class="alt">📄 Generate report cards</button>
-      <button id="btn-send-sep" class="green">📤 Send separately (30s, office hrs)</button>
-      <button id="btn-send-grp" class="green">📢 Post to batch group</button>
-    </div>
-    <div id="res-msg"><small class="note">Type marks or upload a marksheet → generate → send.</small></div>
-  </div>
+  </section>
 
-  <div class="card full">
-    <h2>Students &amp; fees</h2>
-    <table><thead><tr><th>ID</th><th>Name</th><th>Batch</th><th>Stage</th><th>Fee</th><th>Phone</th></tr></thead><tbody id="tb-students"></tbody></table>
-  </div>
-</div>
+  <!-- RESULTS -->
+  <section class="panel" id="panel-results">
+    <div class="card glass">
+      <h2>Results &amp; report cards</h2>
+      <label>Select exam</label><select id="res-exam"></select>
+      <div style="margin:10px 0">
+        <label class="filelabel">📷 Upload marksheet<input id="res-sheet" type="file" accept="image/*" multiple style="display:none"></label>
+      </div>
+      <div class="tbl-wrap"><table><thead><tr><th>Student</th><th>Marks</th><th>Remark</th></tr></thead><tbody id="tb-marks"></tbody></table></div>
+      <div class="btns" style="margin-top:14px">
+        <button id="btn-save-marks">💾 Save marks</button>
+        <button id="btn-gen" class="ghost">📄 Generate report cards</button>
+        <button id="btn-send-sep" class="ok">📤 Send separately</button>
+        <button id="btn-send-grp" class="ok">📢 Post to group</button>
+      </div>
+      <p class="note" id="res-msg" style="margin-top:12px">Type marks or upload a marksheet → generate → send.</p>
+    </div>
+  </section>
+</main>
 
 <script>
-let STATE = null, GROUPS = [];
-const $ = (id) => document.getElementById(id);
+let STATE=null, GROUPS=[];
+const $=(id)=>document.getElementById(id);
+
+// ---- tabs ----
+document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.remove('active'));
+  b.classList.add('active');
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('show'));
+  $('panel-'+b.dataset.tab).classList.add('show');
+  window.scrollTo({top:0,behavior:'smooth'});
+}));
+
+function setPill(el,label,state){ el.classList.remove('on','off'); if(state)el.classList.add(state);
+  el.querySelector('span:last-child').textContent=label; }
 
 async function getGroups(){
-  try{ const r = await (await fetch('/api/groups')).json(); GROUPS = r.groups||[]; }catch{ GROUPS=[]; }
+  try{ const r=await(await fetch('/api/groups')).json(); GROUPS=r.groups||[]; }catch{ GROUPS=[]; }
   fillGroupSelect();
 }
 function fillGroupSelect(){
   $('map-group').innerHTML = GROUPS.length ? GROUPS.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')
-    : '<option value="">(link WhatsApp first, then Reload groups)</option>';
+    : '<option value="">(link WhatsApp, then Reload)</option>';
 }
 function fillBatchSelects(){
-  const names = (STATE?.batchNames)||[];
+  const names=(STATE?.batchNames)||[];
   const opts = names.length ? names.map(n=>`<option>${n}</option>`).join('') : '<option value="">(enroll a student first)</option>';
-  $('map-batch').innerHTML = opts; $('exam-batch').innerHTML = opts; $('broch-batch').innerHTML = opts;
+  $('map-batch').innerHTML=opts; $('exam-batch').innerHTML=opts; $('broch-batch').innerHTML=opts;
 }
 
 async function refresh(){
   try{
-    STATE = await (await fetch('/api/state')).json();
-    const s = STATE;
-    $('title').textContent = s.tenant.name + ' — Command Center';
-    $('wa').textContent='WA: '+s.wa; $('ai').textContent='AI: '+s.ai; $('q').textContent='Queue: '+s.queue;
+    STATE=await(await fetch('/api/state')).json(); const s=STATE;
+    $('title').textContent=s.tenant.name; $('logo').textContent=(s.tenant.name||'C')[0];
+    const waOn = s.wa==='connected';
+    setPill($('wa'), 'WA · '+s.wa, waOn?'on':(s.wa.includes('qr')?'':'off'));
+    setPill($('ai'), 'AI · '+(s.ai.startsWith('on')?'on':'off'), s.ai.startsWith('on')?'on':'off');
+    $('q').textContent='Queue '+s.queue;
     $('st-students').textContent=s.students.length;
     $('st-batches').textContent=(s.batchNames||[]).length;
     $('st-paid').textContent=s.fees.filter(f=>f.status==='paid').length;
@@ -146,30 +261,29 @@ async function refresh(){
     $('broch-status').textContent = s.brochure?.hasBrochure ? ('✅ Brochure set'+(s.brochure.uploadedAt?(' · '+new Date(s.brochure.uploadedAt).toLocaleDateString()):'')) : 'No brochure uploaded.';
 
     const feeBy={}; s.fees.forEach(f=>feeBy[f.studentId]=f.status);
-    $('tb-students').innerHTML = s.students.map(st=>`<tr><td><code>${st.id}</code></td><td>${st.name}</td><td>${st.batch||''}</td><td>${st.stage||''}</td>
+    $('tb-students').innerHTML = s.students.map(st=>`<tr><td>${st.name}</td><td>${st.batch||''}</td><td>${st.stage||''}</td>
       <td><span class="tag ${(feeBy[st.id]||st.feeStatus)==='paid'?'paid':'unpaid'}">${feeBy[st.id]||st.feeStatus||'—'}</span></td><td>${st.phone||''}</td></tr>`).join('')
-      || '<tr><td colspan=6><small class=note>No students yet.</small></td></tr>';
-
+      || '<tr><td colspan=5><span class="note">No students yet.</span></td></tr>';
     $('tb-batches').innerHTML = Object.entries(s.batches||{}).map(([b,v])=>`<tr><td>${b}</td><td>${v.groupName||v.groupId}</td></tr>`).join('')
-      || '<tr><td colspan=2><small class=note>No mappings yet.</small></td></tr>';
+      || '<tr><td colspan=2><span class="note">No mappings yet.</span></td></tr>';
 
     if(!$('map-batch').options.length || $('map-batch').dataset.n!=String((s.batchNames||[]).length)){ fillBatchSelects(); $('map-batch').dataset.n=String((s.batchNames||[]).length); }
-    const examOpts = s.exams.map(e=>`<option value="${e.id}">${e.name} — ${e.batch||'all'}</option>`).join('');
-    if($('res-exam').dataset.n!=String(s.exams.length)){ $('res-exam').innerHTML = examOpts||'<option value="">(create an exam first)</option>'; $('res-exam').dataset.n=String(s.exams.length); renderMarks(); }
-  }catch(e){ $('wa').textContent='WA: server down'; }
-  $('clock').textContent=new Date().toLocaleTimeString();
+    const examOpts=s.exams.map(e=>`<option value="${e.id}">${e.name} — ${e.batch||'all'}</option>`).join('');
+    if($('res-exam').dataset.n!=String(s.exams.length)){ $('res-exam').innerHTML=examOpts||'<option value="">(create an exam first)</option>'; $('res-exam').dataset.n=String(s.exams.length); renderMarks(); }
+  }catch(e){ setPill($('wa'),'server down','off'); }
+  $('clock').textContent=new Date().toLocaleString();
 }
 
 function renderMarks(){
-  const examId=$('res-exam').value; const s=STATE; if(!s) return;
+  const examId=$('res-exam').value, s=STATE; if(!s)return;
   const exam=s.exams.find(e=>e.id===examId); if(!exam){ $('tb-marks').innerHTML=''; return; }
-  const pool=s.students.filter(st=>!exam.batch || st.batch===exam.batch);
+  const pool=s.students.filter(st=>!exam.batch||st.batch===exam.batch);
   const resBy={}; s.results.filter(r=>r.examId===examId).forEach(r=>resBy[r.studentId]=r);
   $('tb-marks').innerHTML = pool.map(st=>{ const r=resBy[st.id]||{};
-    return `<tr data-id="${st.id}"><td>${st.name}${r.status?` <small class=note>(${r.status})</small>`:''}${r.pdfPath?` · <a href="/reportcards/${exam.id}_${st.id}.pdf" target="_blank">PDF</a>`:''}</td>
+    return `<tr data-id="${st.id}"><td>${st.name}${r.status?` <span class=note>(${r.status})</span>`:''}${r.pdfPath?` · <a href="/reportcards/${exam.id}_${st.id}.pdf" target="_blank">PDF</a>`:''}</td>
       <td><input class="mark" type="number" value="${r.marks??''}" placeholder="/${exam.total}"></td>
       <td><input class="remark" value="${r.remark||''}" placeholder="optional"></td></tr>`;
-  }).join('') || '<tr><td colspan=3><small class=note>No students in this batch.</small></td></tr>';
+  }).join('') || '<tr><td colspan=3><span class="note">No students in this batch.</span></td></tr>';
 }
 
 async function post(url,data,isForm){
@@ -179,11 +293,6 @@ async function post(url,data,isForm){
 
 $('f-enroll').addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));
   const r=await post('/api/enroll',d); alert(r.ok?('Enrolled '+r.student.name):('Error: '+r.error)); e.target.reset(); refresh();});
-$('f-exam').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/exam',new FormData(e.target),true);
-  let msg = r.ok ? ('Exam "'+r.exam.name+'" created for '+(r.exam.batch||'all')) : ('Error: '+r.error);
-  if(r.ok && r.distributed){ msg += r.distributed.ok ? ('\nPaper sent now ('+r.distributed.mode+', '+r.distributed.count+').') : ('\nNot sent: '+(r.distributed.reason||'')); }
-  else if(r.ok){ msg += '\nScheduled — will post at the set time.'; }
-  alert(msg); e.target.reset(); refresh();});
 $('f-brochure').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/brochure',new FormData(e.target),true);
   alert(r.ok?'Brochure saved as current.':('Error: '+r.error)); e.target.reset(); refresh();});
 $('btn-broch-send').addEventListener('click',async()=>{const batch=$('broch-batch').value;if(!batch){alert('Pick a batch');return;}
@@ -192,25 +301,34 @@ $('btn-broch-send').addEventListener('click',async()=>{const batch=$('broch-batc
 $('btn-refresh-groups').addEventListener('click',getGroups);
 $('btn-map').addEventListener('click',async()=>{const batch=$('map-batch').value,groupId=$('map-group').value,groupName=$('map-group').selectedOptions[0]?.text;
   if(!batch||!groupId){alert('Pick a batch and a group');return;} const r=await post('/api/batch/map',{batch,groupId,groupName}); alert(r.ok?'Mapped!':'Error'); refresh();});
+$('f-exam').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/exam',new FormData(e.target),true);
+  let msg=r.ok?('Exam "'+r.exam.name+'" created for '+(r.exam.batch||'all')):('Error: '+r.error);
+  if(r.ok&&r.distributed){ msg+=r.distributed.ok?('\nPaper sent now ('+r.distributed.mode+', '+r.distributed.count+').'):('\nNot sent: '+(r.distributed.reason||'')); }
+  else if(r.ok){ msg+='\nScheduled — will post at the set time.'; }
+  alert(msg); e.target.reset(); refresh();});
 $('res-exam').addEventListener('change',renderMarks);
-
-function collectMarks(){return [...document.querySelectorAll('#tb-marks tr[data-id]')].map(tr=>({studentId:tr.dataset.id,
+function collectMarks(){return[...document.querySelectorAll('#tb-marks tr[data-id]')].map(tr=>({studentId:tr.dataset.id,
   marks:tr.querySelector('.mark').value, remark:tr.querySelector('.remark').value})).filter(x=>x.marks!=='');}
 $('btn-save-marks').addEventListener('click',async()=>{const examId=$('res-exam').value;if(!examId)return;
-  const r=await post('/api/marks',{examId,entries:collectMarks()}); $('res-msg').innerHTML='<small class=note>'+(r.ok?('Saved '+r.marked+' marks.'):('Error: '+r.reason))+'</small>'; refresh();});
+  const r=await post('/api/marks',{examId,entries:collectMarks()}); $('res-msg').textContent=r.ok?('Saved '+r.marked+' marks.'):('Error: '+r.reason); refresh();});
 $('res-sheet').addEventListener('change',async e=>{const examId=$('res-exam').value;if(!examId){alert('Pick an exam');return;}
   const fd=new FormData(); fd.append('examId',examId); [...e.target.files].forEach(f=>fd.append('sheet',f));
-  $('res-msg').innerHTML='<small class=note>Reading marksheet…</small>';
-  const r=await post('/api/marks/upload',fd,true);
-  $('res-msg').innerHTML='<small class=note>'+(r.ok?('Read '+r.matched+' students'+(r.unmatched?.length?(', '+r.unmatched.length+' unmatched'):'')):('Error: '+r.error||r.reason))+'</small>'; refresh();});
+  $('res-msg').textContent='Reading marksheet…'; const r=await post('/api/marks/upload',fd,true);
+  $('res-msg').textContent=r.ok?('Read '+r.matched+' students'+(r.unmatched?.length?(', '+r.unmatched.length+' unmatched'):'')):('Error: '+(r.error||r.reason)); refresh();});
 $('btn-gen').addEventListener('click',async()=>{const examId=$('res-exam').value;if(!examId)return;
-  $('res-msg').innerHTML='<small class=note>Generating PDFs…</small>'; const r=await post('/api/reportcards/generate',{examId});
-  $('res-msg').innerHTML='<small class=note>'+(r.ok?('Generated '+r.generated+' report cards.'):('Error: '+r.reason||r.error))+'</small>'; refresh();});
+  $('res-msg').textContent='Generating PDFs…'; const r=await post('/api/reportcards/generate',{examId});
+  $('res-msg').textContent=r.ok?('Generated '+r.generated+' report cards.'):('Error: '+(r.reason||r.error)); refresh();});
 $('btn-send-sep').addEventListener('click',()=>sendCards('separate'));
 $('btn-send-grp').addEventListener('click',()=>sendCards('group'));
 async function sendCards(mode){const examId=$('res-exam').value;if(!examId)return;
-  if(!confirm('Send report cards '+(mode==='group'?'to the batch group?':'separately to each student (paced 30s)?')))return;
-  const r=await post('/api/reportcards/send',{examId,mode}); $('res-msg').innerHTML='<small class=note>'+(r.ok?r.note:('Error: '+r.reason))+'</small>'; refresh();}
+  if(!confirm('Send report cards '+(mode==='group'?'to the batch group?':'separately (paced 30s)?')))return;
+  const r=await post('/api/reportcards/send',{examId,mode}); $('res-msg').textContent=r.ok?r.note:('Error: '+r.reason); refresh();}
+
+// ---- PWA ----
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('install').style.display='inline-flex';});
+$('install').addEventListener('click',async()=>{ if(!deferredPrompt)return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt=null; $('install').style.display='none'; });
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
 
 getGroups(); refresh(); setInterval(refresh,4000);
 </script>

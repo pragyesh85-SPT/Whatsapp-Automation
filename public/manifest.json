@@ -1,0 +1,16 @@
+{
+  "name": "Coaching OS",
+  "short_name": "Coaching OS",
+  "description": "WhatsApp Coaching OS — onboarding, papers, fees and AI report cards.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#eef2ff",
+  "theme_color": "#eaf0ff",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
