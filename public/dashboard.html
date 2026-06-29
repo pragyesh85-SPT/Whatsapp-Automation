@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Coaching OS — Command Center</title>
+<style>
+  :root{--bg:#0f1115;--card:#191c23;--mut:#8b93a7;--acc:#4f8cff;--ok:#28c76f;--warn:#ff9f43;--bad:#ea5455;--line:#262b36}
+  *{box-sizing:border-box} body{margin:0;font:14px/1.5 system-ui,Segoe UI,Roboto,sans-serif;background:#0f1115;color:#e6e9f0}
+  header{padding:16px 22px;border-bottom:1px solid var(--line);display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+  h1{font-size:17px;margin:0} .pill{padding:3px 10px;border-radius:99px;background:#191c23;border:1px solid var(--line);font-size:12px;color:var(--mut)}
+  .wrap{padding:22px;display:grid;gap:18px;grid-template-columns:1fr 1fr}
+  @media(max-width:900px){.wrap{grid-template-columns:1fr}}
+  .card{background:#191c23;border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card h2{font-size:13px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);margin:0 0 12px}
+  table{width:100%;border-collapse:collapse;font-size:13px} th,td{text-align:left;padding:7px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:600} .tag{font-size:11px;padding:2px 8px;border-radius:99px}
+  .paid{background:rgba(40,199,111,.15);color:#28c76f}.unpaid{background:rgba(234,84,85,.15);color:#ea5455}
+  input,textarea,select{width:100%;background:#0f1115;border:1px solid var(--line);color:#e6e9f0;border-radius:8px;padding:9px;font:inherit;margin:4px 0}
+  input.mark{width:80px;margin:0;text-align:center}
+  label{font-size:12px;color:var(--mut)} button{background:var(--acc);color:#fff;border:0;border-radius:8px;padding:9px 14px;font:inherit;cursor:pointer;margin-top:8px}
+  button.alt{background:#2a3140} button.green{background:#1f9d57}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:8px} .s b{display:block;font-size:24px} .s span{color:var(--mut);font-size:12px}
+  .stats{display:flex;gap:22px;flex-wrap:wrap} .full{grid-column:1/-1} small.note{color:var(--mut)} .btns{display:flex;gap:8px;flex-wrap:wrap}
+  a{color:var(--acc)}
+</style>
+</head>
+<body>
+<header>
+  <h1 id="title">Coaching OS</h1>
+  <span class="pill" id="wa">WA: …</span>
+  <span class="pill" id="ai">AI: …</span>
+  <span class="pill" id="q">Queue: …</span>
+  <span class="pill" id="clock"></span>
+</header>
+
+<div class="wrap">
+  <div class="card full">
+    <h2>Overview</h2>
+    <div class="stats">
+      <div class="s"><b id="st-students">0</b><span>Students</span></div>
+      <div class="s"><b id="st-batches">0</b><span>Batches</span></div>
+      <div class="s"><b id="st-paid">0</b><span>Paid (month)</span></div>
+      <div class="s"><b id="st-unpaid">0</b><span>Unpaid</span></div>
+      <div class="s"><b id="st-exams">0</b><span>Exams</span></div>
+      <div class="s"><b id="st-results">0</b><span>Results</span></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>1 · Enroll student</h2>
+    <form id="f-enroll">
+      <div class="row"><div><label>Student name</label><input name="name" required></div><div><label>Batch</label><input name="batch" placeholder="e.g. Class 10 Maths"></div></div>
+      <div class="row"><div><label>Student phone (91…)</label><input name="phone" required></div><div><label>Parent phone (91…)</label><input name="parentPhone"></div></div>
+      <div class="row"><div><label>Parent name</label><input name="parentName"></div><div><label>Monthly fee ₹</label><input name="feeAmount" type="number"></div></div>
+      <button>Enroll + send welcome</button> <small class="note">Welcome + brochure auto-sent (paced).</small>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>Batch → WhatsApp group</h2>
+    <p><small class="note">Add the linked number to each batch's WhatsApp group, then map them here. Papers &amp; group-results post there.</small></p>
+    <div class="row">
+      <div><label>Batch</label><select id="map-batch"></select></div>
+      <div><label>WhatsApp group</label><select id="map-group"></select></div>
+    </div>
+    <button id="btn-map" class="alt">Save mapping</button> <button id="btn-refresh-groups" class="alt">↻ Reload groups</button>
+    <table style="margin-top:10px"><thead><tr><th>Batch</th><th>Mapped group</th></tr></thead><tbody id="tb-batches"></tbody></table>
+  </div>
+
+  <div class="card">
+    <h2>2 · Create exam (→ batch group)</h2>
+    <form id="f-exam" enctype="multipart/form-data">
+      <label>Exam name</label><input name="name" required>
+      <div class="row"><div><label>Batch</label><select name="batch" id="exam-batch"></select></div><div><label>Total marks</label><input name="total" type="number" value="100"></div></div>
+      <label>Schedule (empty = send now)</label><input name="scheduledAt" type="datetime-local">
+      <label>Question paper (PDF)</label><input name="paper" type="file" accept="application/pdf">
+      <button>Create + schedule</button> <small class="note">Posts paper to the batch group at the set time.</small>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>3 · Results &amp; report cards</h2>
+    <label>Select exam</label><select id="res-exam"></select>
+    <div class="btns" style="margin:6px 0">
+      <label class="alt" style="background:#2a3140;border-radius:8px;padding:9px 14px;cursor:pointer">📷 Upload marksheet
+        <input id="res-sheet" type="file" accept="image/*" multiple style="display:none"></label>
+    </div>
+    <table><thead><tr><th>Student</th><th>Marks</th><th>Remark (optional)</th></tr></thead><tbody id="tb-marks"></tbody></table>
+    <div class="btns">
+      <button id="btn-save-marks">💾 Save marks</button>
+      <button id="btn-gen" class="alt">📄 Generate report cards</button>
+      <button id="btn-send-sep" class="green">📤 Send separately (30s, office hrs)</button>
+      <button id="btn-send-grp" class="green">📢 Post to batch group</button>
+    </div>
+    <div id="res-msg"><small class="note">Type marks or upload a marksheet → generate → send.</small></div>
+  </div>
+
+  <div class="card full">
+    <h2>Students &amp; fees</h2>
+    <table><thead><tr><th>ID</th><th>Name</th><th>Batch</th><th>Stage</th><th>Fee</th><th>Phone</th></tr></thead><tbody id="tb-students"></tbody></table>
+  </div>
+</div>
+
+<script>
+let STATE = null, GROUPS = [];
+const $ = (id) => document.getElementById(id);
+
+async function getGroups(){
+  try{ const r = await (await fetch('/api/groups')).json(); GROUPS = r.groups||[]; }catch{ GROUPS=[]; }
+  fillGroupSelect();
+}
+function fillGroupSelect(){
+  $('map-group').innerHTML = GROUPS.length ? GROUPS.map(g=>`<option value="${g.id}">${g.name}</option>`).join('')
+    : '<option value="">(link WhatsApp first, then Reload groups)</option>';
+}
+function fillBatchSelects(){
+  const names = (STATE?.batchNames)||[];
+  const opts = names.length ? names.map(n=>`<option>${n}</option>`).join('') : '<option value="">(enroll a student first)</option>';
+  $('map-batch').innerHTML = opts; $('exam-batch').innerHTML = opts;
+}
+
+async function refresh(){
+  try{
+    STATE = await (await fetch('/api/state')).json();
+    const s = STATE;
+    $('title').textContent = s.tenant.name + ' — Command Center';
+    $('wa').textContent='WA: '+s.wa; $('ai').textContent='AI: '+s.ai; $('q').textContent='Queue: '+s.queue;
+    $('st-students').textContent=s.students.length;
+    $('st-batches').textContent=(s.batchNames||[]).length;
+    $('st-paid').textContent=s.fees.filter(f=>f.status==='paid').length;
+    $('st-unpaid').textContent=s.fees.filter(f=>f.status!=='paid').length;
+    $('st-exams').textContent=s.exams.length;
+    $('st-results').textContent=s.results.length;
+
+    const feeBy={}; s.fees.forEach(f=>feeBy[f.studentId]=f.status);
+    $('tb-students').innerHTML = s.students.map(st=>`<tr><td><code>${st.id}</code></td><td>${st.name}</td><td>${st.batch||''}</td><td>${st.stage||''}</td>
+      <td><span class="tag ${(feeBy[st.id]||st.feeStatus)==='paid'?'paid':'unpaid'}">${feeBy[st.id]||st.feeStatus||'—'}</span></td><td>${st.phone||''}</td></tr>`).join('')
+      || '<tr><td colspan=6><small class=note>No students yet.</small></td></tr>';
+
+    $('tb-batches').innerHTML = Object.entries(s.batches||{}).map(([b,v])=>`<tr><td>${b}</td><td>${v.groupName||v.groupId}</td></tr>`).join('')
+      || '<tr><td colspan=2><small class=note>No mappings yet.</small></td></tr>';
+
+    if(!$('map-batch').options.length || $('map-batch').dataset.n!=String((s.batchNames||[]).length)){ fillBatchSelects(); $('map-batch').dataset.n=String((s.batchNames||[]).length); }
+    const examOpts = s.exams.map(e=>`<option value="${e.id}">${e.name} — ${e.batch||'all'}</option>`).join('');
+    if($('res-exam').dataset.n!=String(s.exams.length)){ $('res-exam').innerHTML = examOpts||'<option value="">(create an exam first)</option>'; $('res-exam').dataset.n=String(s.exams.length); renderMarks(); }
+  }catch(e){ $('wa').textContent='WA: server down'; }
+  $('clock').textContent=new Date().toLocaleTimeString();
+}
+
+function renderMarks(){
+  const examId=$('res-exam').value; const s=STATE; if(!s) return;
+  const exam=s.exams.find(e=>e.id===examId); if(!exam){ $('tb-marks').innerHTML=''; return; }
+  const pool=s.students.filter(st=>!exam.batch || st.batch===exam.batch);
+  const resBy={}; s.results.filter(r=>r.examId===examId).forEach(r=>resBy[r.studentId]=r);
+  $('tb-marks').innerHTML = pool.map(st=>{ const r=resBy[st.id]||{};
+    return `<tr data-id="${st.id}"><td>${st.name}${r.status?` <small class=note>(${r.status})</small>`:''}${r.pdfPath?` · <a href="/reportcards/${exam.id}_${st.id}.pdf" target="_blank">PDF</a>`:''}</td>
+      <td><input class="mark" type="number" value="${r.marks??''}" placeholder="/${exam.total}"></td>
+      <td><input class="remark" value="${r.remark||''}" placeholder="optional"></td></tr>`;
+  }).join('') || '<tr><td colspan=3><small class=note>No students in this batch.</small></td></tr>';
+}
+
+async function post(url,data,isForm){
+  const opt=isForm?{method:'POST',body:data}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)};
+  return (await fetch(url,opt)).json();
+}
+
+$('f-enroll').addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));
+  const r=await post('/api/enroll',d); alert(r.ok?('Enrolled '+r.student.name):('Error: '+r.error)); e.target.reset(); refresh();});
+$('f-exam').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/exam',new FormData(e.target),true);
+  alert(r.ok?('Exam created for '+(r.exam.batch||'all')):('Error: '+r.error)); e.target.reset(); refresh();});
+$('btn-refresh-groups').addEventListener('click',getGroups);
+$('btn-map').addEventListener('click',async()=>{const batch=$('map-batch').value,groupId=$('map-group').value,groupName=$('map-group').selectedOptions[0]?.text;
+  if(!batch||!groupId){alert('Pick a batch and a group');return;} const r=await post('/api/batch/map',{batch,groupId,groupName}); alert(r.ok?'Mapped!':'Error'); refresh();});
+$('res-exam').addEventListener('change',renderMarks);
+
+function collectMarks(){return [...document.querySelectorAll('#tb-marks tr[data-id]')].map(tr=>({studentId:tr.dataset.id,
+  marks:tr.querySelector('.mark').value, remark:tr.querySelector('.remark').value})).filter(x=>x.marks!=='');}
+$('btn-save-marks').addEventListener('click',async()=>{const examId=$('res-exam').value;if(!examId)return;
+  const r=await post('/api/marks',{examId,entries:collectMarks()}); $('res-msg').innerHTML='<small class=note>'+(r.ok?('Saved '+r.marked+' marks.'):('Error: '+r.reason))+'</small>'; refresh();});
+$('res-sheet').addEventListener('change',async e=>{const examId=$('res-exam').value;if(!examId){alert('Pick an exam');return;}
+  const fd=new FormData(); fd.append('examId',examId); [...e.target.files].forEach(f=>fd.append('sheet',f));
+  $('res-msg').innerHTML='<small class=note>Reading marksheet…</small>';
+  const r=await post('/api/marks/upload',fd,true);
+  $('res-msg').innerHTML='<small class=note>'+(r.ok?('Read '+r.matched+' students'+(r.unmatched?.length?(', '+r.unmatched.length+' unmatched'):'')):('Error: '+r.error||r.reason))+'</small>'; refresh();});
+$('btn-gen').addEventListener('click',async()=>{const examId=$('res-exam').value;if(!examId)return;
+  $('res-msg').innerHTML='<small class=note>Generating PDFs…</small>'; const r=await post('/api/reportcards/generate',{examId});
+  $('res-msg').innerHTML='<small class=note>'+(r.ok?('Generated '+r.generated+' report cards.'):('Error: '+r.reason||r.error))+'</small>'; refresh();});
+$('btn-send-sep').addEventListener('click',()=>sendCards('separate'));
+$('btn-send-grp').addEventListener('click',()=>sendCards('group'));
+async function sendCards(mode){const examId=$('res-exam').value;if(!examId)return;
+  if(!confirm('Send report cards '+(mode==='group'?'to the batch group?':'separately to each student (paced 30s)?')))return;
+  const r=await post('/api/reportcards/send',{examId,mode}); $('res-msg').innerHTML='<small class=note>'+(r.ok?r.note:('Error: '+r.reason))+'</small>'; refresh();}
+
+getGroups(); refresh(); setInterval(refresh,4000);
+</script>
+</body>
+</html>

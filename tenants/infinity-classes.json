@@ -1,0 +1,49 @@
+{
+  "id": "infinity-classes",
+  "active": true,
+  "channel": "headless",
+  "branding": {
+    "displayName": "Infinity Classes",
+    "about": "Infinity Classes — Result-oriented coaching. We reply 9 AM–8 PM.",
+    "signoff": "— Team Infinity Classes",
+    "logoPath": "tenants/assets/infinity-logo.jpg"
+  },
+  "reportCard": {
+    "instituteName": "Infinity Classes",
+    "tagline": "Result-Oriented Coaching",
+    "contact": "+91 90000 00000",
+    "address": "Main Road, Your City",
+    "accent": "#4f8cff",
+    "logoPath": "tenants/assets/infinity-logo.jpg"
+  },
+  "admins": [
+    { "name": "Kapil Sir", "phone": "91XXXXXXXXXX" }
+  ],
+  "feeReminder": {
+    "dueDayOfMonth": 5,
+    "reminderOffsets": [0, 3, 7, 12],
+    "currency": "INR"
+  },
+  "humanizer": {
+    "spacingMs": 60000,
+    "jitterMs": 30000,
+    "warmupRamp": [20, 25, 30, 35, 40, 45, 50],
+    "officeStartHour": 9,
+    "officeEndHour": 20,
+    "typingMinMs": 1200,
+    "typingMaxMs": 3000
+  },
+  "aiBudget": {
+    "monthlyTokenCap": 5000000
+  },
+  "templates": {
+    "onboardingStudent": "Namaste {studentName} ji 🙏\nWelcome to {center}! We're glad to have you in {batch}.\nYour class schedule and rules are attached. Any doubt, just message here.\n{signoff}",
+    "onboardingParent": "Namaste 🙏\n{studentName} has been enrolled at {center} ({batch}).\nWe'll keep you updated on tests, fees and progress right here on WhatsApp.\n{signoff}",
+    "feeReminder": "Namaste {parentName} ji 🙏\nGentle reminder: the fee for {studentName} ({month}) of ₹{amount} is pending.\nYou can pay securely here: {payLink}\n{signoff}",
+    "feeConfirmed": "Thank you {parentName} ji 🙏 Payment of ₹{amount} for {studentName} ({month}) received. Receipt: {receiptNo}.\n{signoff}",
+    "examGroupNotice": "📢 {batch} — Test: \"{examName}\"\nQuestion paper is attached below. 🕘 Start now, all the best! 🙌\n{signoff}",
+    "reportCardCaption": "📊 {studentName} — Report Card for \"{examName}\"\nScore: {marks}/{total} ({percent}%)\nYour detailed report card is attached. {signoff}",
+    "examNotice": "📢 {studentName}, your test \"{examName}\" is now live.\nQuestion paper is attached. All the best! 🙌\nUpload your answer sheets here when done: {uploadLink}\n{signoff}",
+    "reportCard": "📊 Report Card — {examName}\n{studentName}: {marks}/{total} ({percent}%)\n\n{feedback}\n\nKeep it up! {signoff}"
+  }
+}
