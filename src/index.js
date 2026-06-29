@@ -3,6 +3,7 @@
 const { TENANT_ID, env } = require('./config');
 const store = require('./store');
 const wa = require('./wa');
+const queue = require('./queue');
 const router = require('./router');
 const scheduler = require('./scheduler');
 const server = require('./server');
@@ -15,6 +16,7 @@ console.log(`  Channel: headless (whatsapp-web.js + system Chrome)`);
 console.log('==================================================');
 
 store.load();          // init DB
+queue.restore();       // resume any messages still pending from before a restart
 server.start();        // web/dashboard/uploads/webhooks
 router.register(wa);   // inbound -> analytics bot etc.
 wa.init();             // start engine -> prints QR to scan once

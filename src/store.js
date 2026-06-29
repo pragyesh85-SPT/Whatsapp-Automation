@@ -13,6 +13,8 @@ const DEFAULTS = {
   exams: {},         // id -> { id, name, batch, paperPath, scheduledAt, total, distributed, createdAt }
   results: {},       // `${examId}:${studentId}` -> { examId, studentId, marks, total, percent, remark, pdfPath, status, sentAt }
   submissions: {},   // id -> { id, examId, studentId, images:[paths], marks, total, percent, feedback, status, createdAt }  (optional AI answer-check)
+  outbox: {},        // id -> queued message item (persisted so a reboot resumes pending sends)
+  settings: { brochurePath: null, brochureUploadedAt: null },
   counters: {},      // `wa:${YYYY-MM-DD}` -> sent count ;  `ai:${YYYY-MM}` -> tokens used
   meta: { createdAt: null },
 };

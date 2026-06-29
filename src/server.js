@@ -12,6 +12,7 @@ const examFlow = require('./flows/exam');
 const evaluation = require('./flows/evaluation');
 const fees = require('./flows/fees');
 const results = require('./flows/results');
+const brochure = require('./flows/brochure');
 const batches = require('./batches');
 const ai = require('./ai');
 
@@ -48,6 +49,7 @@ function start() {
       wa: wa.status().ready ? 'connected' : (wa.status().hasQr ? 'scan-qr-in-terminal' : 'starting'),
       ai: ai.enabled() ? `on (${ai.tokensUsedThisMonth()} tok used)` : 'off (no key)',
       queue: queue.size(),
+      brochure: brochure.info(),
       students: Object.values(db.students),
       batches: db.batches,
       batchNames: batches.listBatchNames(),
@@ -82,15 +84,31 @@ function start() {
   });
 
   // ---- Admin: create + schedule an exam for a batch (Pillar 3) ----
+  // No schedule (or a past/now time) => post the paper to the batch group immediately.
   app.post('/api/exam', upload.single('paper'), (req, res) => {
     const b = req.body;
+    const sendNow = !b.scheduledAt || new Date(b.scheduledAt).getTime() <= Date.now() + 1000;
     const rec = examFlow.createExam({
       name: b.name || 'Test', batch: b.batch || '', total: Number(b.total) || 100,
       answerKey: b.answerKey || '',
       paperPath: req.file ? req.file.path : undefined,
       scheduledAt: b.scheduledAt ? new Date(b.scheduledAt).toISOString() : new Date().toISOString(),
     });
-    res.json({ ok: true, exam: rec });
+    let dist = null;
+    if (sendNow) dist = examFlow.distribute(rec.id); // instant: pick group -> upload -> sent
+    res.json({ ok: true, exam: rec, distributed: dist });
+  });
+
+  // ---- Brochure: upload/replace (auto-attached to new students) ----
+  app.post('/api/brochure', upload.single('brochure'), (req, res) => {
+    if (!req.file) return res.status(400).json({ error: 'brochure PDF required' });
+    const dest = brochure.setBrochure(req.file.path);
+    res.json({ ok: true, path: dest, info: brochure.info() });
+  });
+
+  // ---- Brochure: post current brochure to a batch group ----
+  app.post('/api/brochure/send', (req, res) => {
+    res.json(brochure.sendToGroup(req.body.batch));
   });
 
   // ---- Admin: trigger a daily fee run now (for testing) ----

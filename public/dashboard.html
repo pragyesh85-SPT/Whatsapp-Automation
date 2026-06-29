@@ -58,6 +58,17 @@
   </div>
 
   <div class="card">
+    <h2>Brochure</h2>
+    <p><small class="note" id="broch-status">No brochure uploaded.</small></p>
+    <form id="f-brochure" enctype="multipart/form-data">
+      <label>Upload / replace brochure (PDF)</label><input name="brochure" type="file" accept="application/pdf" required>
+      <button>Save as current brochure</button>
+    </form>
+    <p style="margin-top:10px"><small class="note">Auto-sent to every new student. Or post it to a group now:</small></p>
+    <div class="row"><div><select id="broch-batch"></select></div><div><button id="btn-broch-send" class="alt" style="margin-top:4px">📘 Post to group</button></div></div>
+  </div>
+
+  <div class="card">
     <h2>Batch → WhatsApp group</h2>
     <p><small class="note">Add the linked number to each batch's WhatsApp group, then map them here. Papers &amp; group-results post there.</small></p>
     <div class="row">
@@ -75,7 +86,7 @@
       <div class="row"><div><label>Batch</label><select name="batch" id="exam-batch"></select></div><div><label>Total marks</label><input name="total" type="number" value="100"></div></div>
       <label>Schedule (empty = send now)</label><input name="scheduledAt" type="datetime-local">
       <label>Question paper (PDF)</label><input name="paper" type="file" accept="application/pdf">
-      <button>Create + schedule</button> <small class="note">Posts paper to the batch group at the set time.</small>
+      <button>Upload + send paper</button> <small class="note">Empty schedule = posts to the batch group now. Set a time to schedule it.</small>
     </form>
   </div>
 
@@ -117,7 +128,7 @@ function fillGroupSelect(){
 function fillBatchSelects(){
   const names = (STATE?.batchNames)||[];
   const opts = names.length ? names.map(n=>`<option>${n}</option>`).join('') : '<option value="">(enroll a student first)</option>';
-  $('map-batch').innerHTML = opts; $('exam-batch').innerHTML = opts;
+  $('map-batch').innerHTML = opts; $('exam-batch').innerHTML = opts; $('broch-batch').innerHTML = opts;
 }
 
 async function refresh(){
@@ -132,6 +143,7 @@ async function refresh(){
     $('st-unpaid').textContent=s.fees.filter(f=>f.status!=='paid').length;
     $('st-exams').textContent=s.exams.length;
     $('st-results').textContent=s.results.length;
+    $('broch-status').textContent = s.brochure?.hasBrochure ? ('✅ Brochure set'+(s.brochure.uploadedAt?(' · '+new Date(s.brochure.uploadedAt).toLocaleDateString()):'')) : 'No brochure uploaded.';
 
     const feeBy={}; s.fees.forEach(f=>feeBy[f.studentId]=f.status);
     $('tb-students').innerHTML = s.students.map(st=>`<tr><td><code>${st.id}</code></td><td>${st.name}</td><td>${st.batch||''}</td><td>${st.stage||''}</td>
@@ -168,7 +180,15 @@ async function post(url,data,isForm){
 $('f-enroll').addEventListener('submit',async e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.target));
   const r=await post('/api/enroll',d); alert(r.ok?('Enrolled '+r.student.name):('Error: '+r.error)); e.target.reset(); refresh();});
 $('f-exam').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/exam',new FormData(e.target),true);
-  alert(r.ok?('Exam created for '+(r.exam.batch||'all')):('Error: '+r.error)); e.target.reset(); refresh();});
+  let msg = r.ok ? ('Exam "'+r.exam.name+'" created for '+(r.exam.batch||'all')) : ('Error: '+r.error);
+  if(r.ok && r.distributed){ msg += r.distributed.ok ? ('\nPaper sent now ('+r.distributed.mode+', '+r.distributed.count+').') : ('\nNot sent: '+(r.distributed.reason||'')); }
+  else if(r.ok){ msg += '\nScheduled — will post at the set time.'; }
+  alert(msg); e.target.reset(); refresh();});
+$('f-brochure').addEventListener('submit',async e=>{e.preventDefault();const r=await post('/api/brochure',new FormData(e.target),true);
+  alert(r.ok?'Brochure saved as current.':('Error: '+r.error)); e.target.reset(); refresh();});
+$('btn-broch-send').addEventListener('click',async()=>{const batch=$('broch-batch').value;if(!batch){alert('Pick a batch');return;}
+  if(!confirm('Post the brochure to the "'+batch+'" group?'))return; const r=await post('/api/brochure/send',{batch});
+  alert(r.ok?'Queued to group.':('Error: '+r.reason));});
 $('btn-refresh-groups').addEventListener('click',getGroups);
 $('btn-map').addEventListener('click',async()=>{const batch=$('map-batch').value,groupId=$('map-group').value,groupName=$('map-group').selectedOptions[0]?.text;
   if(!batch||!groupId){alert('Pick a batch and a group');return;} const r=await post('/api/batch/map',{batch,groupId,groupName}); alert(r.ok?'Mapped!':'Error'); refresh();});

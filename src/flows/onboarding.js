@@ -1,17 +1,11 @@
 // Pillar 1: Instant Onboarding. Admin adds a student -> personalized welcome to
 // student + parent (with optional welcome PDF), then stage advances.
-const path = require('path');
-const fs = require('fs');
 const store = require('../store');
 const queue = require('../queue');
 const hz = require('../humanize');
-const { tenant, paths } = require('../config');
+const brochure = require('./brochure');
+const { tenant } = require('../config');
 const { fill } = require('./_util');
-
-function welcomeKitPath() {
-  const p = path.join(paths.media, 'welcome-kit.pdf');
-  return fs.existsSync(p) ? p : undefined;
-}
 
 // student: { name, parentName, phone, parentPhone, batch, class, feeAmount }
 function enroll(student) {
@@ -25,7 +19,7 @@ function enroll(student) {
   };
   store.update((db) => { db.students[id] = rec; });
 
-  const kit = welcomeKitPath();
+  const kit = brochure.current() || undefined; // admin-managed brochure, auto-attached
   if (hz.hasConsent(rec) && rec.phone) {
     queue.enqueue({
       phone: rec.phone, kind: 'onboarding-student', mediaPath: kit,

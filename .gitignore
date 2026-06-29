@@ -1,7 +1,7 @@
 node_modules/
 .wwebjs_auth/
 .wwebjs_cache/
-data/*.json
-data/*.db
+# all runtime data (student records, brochures, uploads, report cards) — never commit
+data/
 logs/*.log
 .env

@@ -1,16 +1,38 @@
-// The single paced sender. EVERY outbound message goes through here so the
+// The single paced sender. EVERY outbound message goes through here, so the
 // humanizer (office hours, daily cap, typing sim, pacing, variation) always applies.
+// DURABLE: pending items are persisted to db.outbox, so a reboot resumes them
+// (e.g. report cards held overnight for office hours are not lost).
 const wa = require('./wa');
 const hz = require('./humanize');
+const store = require('./store');
 
-// item: { phone, text, mediaPath?, kind, meta?, urgent? }
-const q = [];
+const q = [];          // in-memory working copy (mirror of db.outbox)
 let draining = false;
 
+// Strip non-serialisable fields before persisting.
+function serialisable(it) {
+  const { onSent, ...rest } = it;
+  return rest;
+}
+function persistAdd(item) { store.update((db) => { db.outbox[item.id] = serialisable(item); }); }
+function persistRemove(id) { store.update((db) => { delete db.outbox[id]; }); }
+
+// item: { phone | chatId, text, mediaPath?, kind, spacingMs?, urgent?, onSent? }
 function enqueue(item) {
-  q.push({ ...item, queuedAt: Date.now() });
+  const rec = { id: 'o_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), queuedAt: Date.now(), retries: 0, ...item };
+  q.push(rec);
+  persistAdd(rec);
   drain();
   return q.length;
+}
+
+// On boot: reload anything that was still pending.
+function restore() {
+  const db = store.load();
+  const items = Object.values(db.outbox || {}).sort((a, b) => (a.queuedAt || 0) - (b.queuedAt || 0));
+  for (const it of items) q.push(it);
+  if (items.length) console.log(`[QUEUE] Restored ${items.length} pending message(s) from outbox.`);
+  drain();
 }
 
 function size() { return q.length; }
@@ -38,16 +60,16 @@ async function drain() {
       const target = item.chatId || wa.jid(item.phone);
       const isGroup = String(target).endsWith('@g.us');
       try {
-        // typing sim only for 1:1 chats (keeps DMs human; groups just post)
-        if (!isGroup && item.phone) await wa.showTyping(item.phone, hz.typingDelayMs());
+        if (!isGroup && item.phone) await wa.showTyping(item.phone, hz.typingDelayMs()); // typing sim for DMs
         await wa.rawSendChat(target, hz.vary(item.text || ''), item.mediaPath);
         hz.bumpSent();
+        persistRemove(item.id);
         console.log(`[SENT] ${item.kind} -> ${target}  (cap ${hz.sentToday()}/${hz.dailyCap()})`);
         if (typeof item.onSent === 'function') { try { item.onSent(); } catch {} }
       } catch (e) {
-        console.log(`[QUEUE] send failed (${item.kind} -> ${target}): ${e.message}. Re-queueing.`);
-        if ((item.retries || 0) >= 3) { console.log('[QUEUE] dropped after 3 retries.'); }
-        else { q.push({ ...item, retries: (item.retries || 0) + 1 }); }
+        console.log(`[QUEUE] send failed (${item.kind} -> ${target}): ${e.message}.`);
+        if ((item.retries || 0) >= 3) { persistRemove(item.id); console.log('[QUEUE] dropped after 3 retries.'); }
+        else { item.retries = (item.retries || 0) + 1; q.push(item); persistAdd(item); }
         await sleep(30000);
       }
 
@@ -64,4 +86,4 @@ async function drain() {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-module.exports = { enqueue, size, drain };
+module.exports = { enqueue, restore, size, drain };
