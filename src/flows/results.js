@@ -63,8 +63,11 @@ async function generateCards(examId) {
   const db = store.load();
   const exam = db.exams[examId];
   if (!exam) return { ok: false, reason: 'no exam' };
+  // (Re)generate for every result that has marks — so you can resend, or post to the
+  // group after sending separately. The explicit Generate->Send step still guards
+  // against accidental double-sends (a second send needs a fresh generate).
   const items = Object.values(db.results)
-    .filter((r) => r.examId === examId && r.status !== 'sent')
+    .filter((r) => r.examId === examId && r.marks != null)
     .map((r) => ({ student: db.students[r.studentId], exam, marks: r.marks, total: r.total, percent: r.percent, remark: r.remark }))
     .filter((it) => it.student);
   if (!items.length) return { ok: false, reason: 'no marks entered yet' };
